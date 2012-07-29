@@ -4,9 +4,9 @@
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 
 <!-- ユーザ設定値 -->
-<title>高橋rf.html + printplusリリース</title>
+<title>高橋rf.html 0.3</title>
 <script type="text/javascript">
-var headerText = "2010/10/27 NSEG長野開発オフ Vol.6";
+var headerText = "2012/1/3 rayflood.org/mozilla/";
 var footerText = "by ABE Hiroki aka hATrayflood";
 </script>
 <style type="text/css">
@@ -16,19 +16,23 @@ var footerText = "by ABE Hiroki aka hATrayflood";
 #page1lineBlock > span.line {
 	margin-left: 0px !important;
 }
-#page36line2, #page36line3 {
+#page41line2, #page41line3 {
 	color: yellow;
 	background-color: green;
 }
-#page38 {
+#page43 {
 	color: white;
 	background-color: black;
-	font-family: serif;
+	font-family: "MS PMincho", "ＭＳ Ｐ明朝", serif;
 }
-#page38lineBlock {
+#page43 em {
+	font-weight: normal;
+	font-family: sans-serif;
+}
+#page43lineBlock {
 	text-align: center;
 }
-#page38lineBlock > span.line {
+#page43lineBlock > span.line {
 	margin-left: 0px !important;
 }
 
@@ -36,10 +40,16 @@ strong {
 	color: red;
 	font-weight: bold;
 }
+em {
+	color: blue;
+	font-weight: bold;
+	font-style: italic;
+	font-family: "MS PMincho", "ＭＳ Ｐ明朝", serif;
+}
 .header, .footer {
 	font-weight: bold;
 }
-table, table * {
+table, tr, th, td {
 	border: 1px solid;
 	border-collapse: collapse;
 	empty-cells: show;
@@ -50,7 +60,11 @@ table, table * {
 body {
 	color: white;
 	background-color: black;
-	font-family: serif;
+	font-family: "MS PMincho", "ＭＳ Ｐ明朝", serif;
+}
+em {
+	font-weight: normal;
+	font-family: sans-serif;
 }
 */
 /* センタリング */
@@ -68,6 +82,7 @@ div.lineBlock > span.line {
 <style type="text/css">
 body {
 	margin-top : 0px;
+	font-family: "Meiryo UI", "Meiryo", "メイリオ", sans-serif;
 }
 div.page {
 	page-break-after: always;
@@ -83,6 +98,7 @@ div.footer {
 }
 </style>
 <script type="text/javascript">
+//<![CDATA[
 var curpage = 1;
 var maxpage = 1;
 function createPages(){
@@ -92,6 +108,9 @@ function createPages(){
 
 	var body = document.getElementById("body");
 	var content = document.getElementById("content").textContent;
+	if(!content){
+		var content = document.getElementById("content").innerText;
+	}
 	while(body.firstChild){
 		body.removeChild(body.firstChild);
 	}
@@ -103,7 +122,7 @@ function createPages(){
 		br.id = (i + 1);
 		body.appendChild(br);
 		var page = createDiv(i, "");
-		page.setAttribute("class", "page");
+		page.className = "page";
 		body.appendChild(page);
 
 		var header = createDiv(i, "header")
@@ -113,11 +132,11 @@ function createPages(){
 
 		var lineBlock = createDiv(i, "lineBlock");
 		page.appendChild(lineBlock);
-		var lines = pages[i].trim().split("\n");
+		var lines = pages[i].replace(/^[\s　]+|[\s　]+$/g, "").split("\n");
 		for(var j = 0; j < lines.length; j++){
 			var line = document.createElement("span");
 			line.id = "page" + (i + 1) + "line" + (j + 1);
-			line.setAttribute("class", "line");
+			line.className = "line";
 			line.innerHTML = lines[j];
 			lineBlock.appendChild(line);
 			lineBlock.appendChild(document.createElement("br"));
@@ -132,7 +151,7 @@ function createPages(){
 	var ahref = document.getElementsByTagName("a");
 	for(var i = 0; i < ahref.length; i++){
 		if(!ahref[i].onclick){
-			ahref[i].onclick = function(event){event.target.blur()};
+			ahref[i].onclick = function(event){if(event){event.target.blur();}};
 		}
 		if(!ahref[i].target){
 			ahref[i].target = "_blank";
@@ -143,11 +162,17 @@ function createPages(){
 	}
 
 	adjustPages();
+	if(document.addEventListener){
+		document.addEventListener("keydown", keyBackForward, false);
+	}
+	else{
+		body.attachEvent("onkeydown", keyBackForward);
+	}
 }
 function createDiv(i, name){
 	var div = document.createElement("div");
 	div.id = "page" + (i + 1) + name;
-	div.setAttribute("class", name);
+	div.className = name;
 	return div;
 }
 function adjustPages(){
@@ -164,10 +189,14 @@ function adjustPages(){
 		}
 	}
 
-	var pages = document.getElementsByClassName("page");
+	var pages = body.getElementsByTagName("div");
 	for(var i = 0; i < pages.length; i++){
 		var page = pages[i];
-		page.style.height = (clientHeight * 15 / 16) + "px";
+		if(page.className != "page"){
+			continue;
+		}
+
+		page.style.height = (clientHeight - 32) + "px";
 
 		var lineBlock = document.getElementById(page.id + "lineBlock");
 		var header = document.getElementById(page.id + "header");
@@ -175,25 +204,35 @@ function adjustPages(){
 		header.style.lineHeight = getFontSize(header) + "px";
 		footer.style.lineHeight = getFontSize(footer) + "px";
 		var maxHeight = page.offsetHeight - header.offsetHeight - footer.offsetHeight;
-		var lines = page.getElementsByClassName("line");
-		var lineWidth = setLineFontSize(lines, offsetWidth, maxHeight);
+		var lineWidth = setLineFontSize(page, offsetWidth, maxHeight);
 
 		var addHeight = (maxHeight - lineBlock.offsetHeight) / 2;
 		var addWidth  = (offsetWidth - lineWidth) / 2;
 		var headerSpacer = document.getElementById(page.id + "headerSpacer");
 		var footerSpacer = document.getElementById(page.id + "footerSpacer");
-		headerSpacer.style.height = addHeight + "px";
-		footerSpacer.style.height = addHeight + "px";
+		if(addHeight >= 0){
+			headerSpacer.style.height = addHeight + "px";
+			footerSpacer.style.height = addHeight + "px";
+		}
 	}
 }
-function setLineFontSize(lines, limitWidth, limitHeight){
+function setLineFontSize(page, limitWidth, limitHeight){
 	var maxWidth = 0;
 	var maxHeight = 0;
+	var lines = page.getElementsByTagName("span");
 	for(var j = 0; j < lines.length; j++){
 		var line = lines[j];
+		if(line.className != "line"){
+			continue;
+		}
+
 		var lineHeight = setLineHeight(line);
-		if(lineHeight <= line.offsetHeight){
-			maxHeight += line.offsetHeight;
+		var offsetHeight = line.offsetHeight;
+		if(offsetHeight == 0){
+			offsetHeight = lineHeight;
+		}
+		if(lineHeight <= offsetHeight){
+			maxHeight += offsetHeight;
 			maxWidth = Math.max(line.offsetWidth, maxWidth);
 		}
 	}
@@ -234,28 +273,39 @@ function getFontSize(line){
 	}
 }
 function keyBackForward(event){
+	if(!event){
+		return false;
+	}
+	if(event.preventDefault){
+		event.preventDefault();
+	}
+	else{
+		event.returnValue = false;
+	}
+
 	if(event.keyCode == 13){
 		if(curpage != maxpage){
 			curpage++;
 			document.location.replace(document.location.protocol + document.location.pathname + "#" + curpage);
 		}
 	}
-	if(event.keyCode == 8){
+	if(event.keyCode == 8 || event.keyCode == 46){
 		if(curpage != 1){
 			curpage--;
 			document.location.replace(document.location.protocol + document.location.pathname + "#" + curpage);
 		}
 	}
 }
+//]]>
 </script>
 </head>
-<body id="body" onload="createPages();" onkeypress="keyBackForward(event);">
+<body id="body" onload="createPages();">
 
 <!-- ユーザ設定値 -->
 <textarea id="content" style="visibility: collapse; height: 0px; width: 0px;">
 プレゼンツール
-高橋rf.html + printplus
-<strong>リリース</strong>のお知らせ
+高橋rf.html <strong>0.3</strong>
+アップデート
 ---
 自己紹介
 ・名前：アベヒロキ (<a href="http://twitter.com/hATrayflood">@hATrayflood</a>)
@@ -263,29 +313,36 @@ function keyBackForward(event){
 ・URL：<a href="http://rayflood.org/diary/">http://rayflood.org/diary/</a>
 ・住所：長野市 地元：東部町
 ---
-<a href="https://dev.mozilla.jp/events/workshop07/">Mozilla 勉強会@名古屋</a>でLTした
-<a href="http://www.slideshare.net/hATrayflood/rfhtml-printplus-5459082">高橋rf.html + printplus</a>ですが
+ver0.1として<strong>リリース</strong>した
+<a href="http://rayflood.org/mozilla/#tkhs">高橋rf.html</a>ですが
 ---
-一応、まともに
-動くようになったので
+プレゼンの都度
+直してたけど
 ---
-ver0.1として<strong>リリース</strong>します
-<a href="http://rayflood.org/mozilla/#tkhs"></a>
+リリースしては
+なかったので
+<strong>0.3としてうｐ</strong>
+---
+※0.2は
+　<em>紛失</em>しました
 ---
 動作
 環境
 ---
-高橋rf.html
-・Firefox
-・Seamonkey
-　他ブラウザは
-　<strong>未対応</strong>
+・Firefox 3.6
+・Firefox 9.0
+・Seamonkey 2.x
 ---
-printplus
-・Firefox
-・Thunderbird
-・Seamonkey
-　<strong>Windows版のみ</strong>
+・IE 8, IE 9
+・Chrome 16
+・Safari 5.1
+・Opera 11
+---
+なんと、まさかの
+<strong>クロスブラウザ</strong>化
+---
+※いずれもWindows版で
+　動作を確認
 ---
 使い方
 ---
@@ -303,16 +360,16 @@ HTMLをベタで
 ---
 titleタグを直接編集
 　
-&amp;lt;title&amp;gt;高橋rf.html + printplusリリース&amp;lt;/title&amp;gt;
+&amp;lt;title&amp;gt;高橋rf.html 0.3&amp;lt;/title&amp;gt;
 ---
 ヘッダ
 フッタ
 ---
 titleタグのすぐ下のscript内の変数を直接編集
 　
-&amp;lt;title&amp;gt;高橋rf.html + printplusリリース&amp;lt;/title&amp;gt;
+&amp;lt;title&amp;gt;高橋rf.html 0.3&amp;lt;/title&amp;gt;
 &amp;lt;script type="text/javascript"&amp;gt;
-var headerText = "2010/10/27 NSEG長野開発オフ Vol.6";
+var headerText = "2012/1/3 rayflood.org/mozilla/";
 var footerText = "by ABE Hiroki aka hATrayflood";
 ---
 本文
@@ -321,8 +378,8 @@ bodyタグ内のtextareaの値を直接編集
 　
 &amp;lt;textarea id="content"&amp;gt;
 プレゼンツール
-高橋rf.html + printplus
-&amp;lt;strong&amp;gt;リリース&amp;lt;/strong&amp;gt;のお知らせ
+高橋rf.html &amp;lt;strong&amp;gt;0.3&amp;lt;strong&amp;gt;
+アップデート
  ---
 自己紹介
 　…
@@ -378,18 +435,27 @@ aタグ
 ---
 strongタグ
 ・赤字で表示
-・これはCSSで実装。19行目を参照。
+・これはCSSで実装。35行目を参照。
 ---
 例：
 &amp;lt;strong&amp;gt;strongタグ&amp;lt;/strong&amp;gt;
 　↓
 <strong>strongタグ</strong>
 ---
+emタグ
+・青字、斜体、明朝体で表示
+・これもCSSで実装。39行目を参照。
+---
+例：
+&amp;lt;em&amp;gt;emタグ&amp;lt;/em&amp;gt;
+　↓
+<em>emタグ</em>
+---
 テーブル
 ・枠線すっきり
 ・自動折り返し禁止
 ・空セルも表示
-・これもCSSで実装。26行目を参照。
+・これもCSSで実装。48行目を参照。
 ・ただし、<strong>1行で</strong>書け！！
 ---
 例：
@@ -422,14 +488,24 @@ Tips
 ---
 例：
 ユーザスタイルを適用すると
-センタリングや
-エヴァモードも使えるよ！
+<em>センタリング</em>や
+<em>エヴァモード</em>も使えるよ！
 　
 ※エヴァは<strong>body</strong>での指定を推奨…
 ---
+フォント
+---
+Meiryo UI, メイリオが
+デフォルトフォント
+83行目を参照
+---
+XPでは、コントロールパネル
+→画面→デザイン→効果で
+<strong>ClearType</strong>を推奨
+---
 プレゼン
 ---
-Firefoxで開いて
+ブラウザで開いて
 プロジェクタに
 映してください
 ---
@@ -460,7 +536,8 @@ PDF
 ---
 高橋rf.htmlの
 他ブラウザ対応は
-優先度<strong>低</strong>です
+<s>優先度<strong>低</strong>です</s>
+<strong>対応しました</strong>
 ---
 PDF出力も他の
 環境への対応は

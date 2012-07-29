@@ -1,0 +1,360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html id="html">
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+
+<!-- ユーザ設定値 -->
+<title>高橋rf.html + printplus</title>
+<script type="text/javascript">
+var headerText = "2010/10/16 Mozilla 勉強会@名古屋";
+var footerText = "by ABE Hiroki aka hATrayflood";
+</script>
+<style type="text/css">
+strong {
+	color: red;
+	font-weight: bold;
+}
+.header, .footer {
+	font-weight: bold;
+}
+table, table * {
+	border: 1px solid;
+	border-collapse: collapse;
+	empty-cells: show;
+	white-space: nowrap;
+}
+/*
+body {
+	color: white;
+	background-color: black;
+	font-family: serif;
+}
+div.lineBlock {
+	text-align: center;
+}
+div.lineBlock > span.line {
+	margin-left: 0px !important;
+}
+*/
+</style>
+<!-- ユーザ設定値 -->
+
+<style type="text/css">
+body {
+	margin-top   : 0px;
+}
+div.page {
+	page-break-after: always;
+}
+span.line {
+	white-space: nowrap;
+}
+div.header {
+	text-align: left;
+}
+div.footer {
+	text-align: right;
+}
+</style>
+<script type="text/javascript">
+var curpage = 1;
+var maxpage = 1;
+function createPages(){
+	if(document.location.hash){
+		curpage = parseInt(document.location.hash.substr(1));
+	}
+
+	var body = document.getElementById("body");
+	var content = document.getElementById("content").textContent;
+	while(body.firstChild){
+		body.removeChild(body.firstChild);
+	}
+
+	var pages = content.split(/\n---*/);
+	maxpage = pages.length;
+	for(var i = 0; i < pages.length; i++){
+		var br = document.createElement("br")
+		br.id = (i + 1);
+		body.appendChild(br);
+		var page = createDiv(i, "");
+		page.setAttribute("class", "page");
+		body.appendChild(page);
+
+		var header = createDiv(i, "header")
+		header.innerHTML = headerText;
+		page.appendChild(header);
+		page.appendChild(createDiv(i, "headerSpacer"));
+
+		var lineBlock = createDiv(i, "lineBlock");
+		page.appendChild(lineBlock);
+		var lines = pages[i].trim().split("\n");
+		for(var j = 0; j < lines.length; j++){
+			var line = document.createElement("span");
+			line.id = "page" + (i + 1) + "line" + (j + 1);
+			line.setAttribute("class", "line");
+			line.innerHTML = lines[j];
+			lineBlock.appendChild(line);
+			lineBlock.appendChild(document.createElement("br"));
+		}
+
+		page.appendChild(createDiv(i, "footerSpacer"));
+		var footer = createDiv(i, "footer")
+		footer.innerHTML = footerText;
+		page.appendChild(footer);
+	}
+
+	adjustPages();
+}
+function createDiv(i, name){
+	var div = document.createElement("div");
+	div.id = "page" + (i + 1) + name;
+	div.setAttribute("class", name);
+	return div;
+}
+function adjustPages(){
+	var html = document.getElementById("html");
+	var body = document.getElementById("body");
+	var clientHeight = html.clientHeight;
+	body.style.width = (html.clientHeight * 1.28125) + "px";
+	var offsetWidth = body.offsetWidth;
+
+	var pages = document.getElementsByClassName("page");
+	for(var i = 0; i < pages.length; i++){
+		var page = pages[i];
+		page.style.height = (clientHeight * 15 / 16) + "px";
+
+		var lineBlock = document.getElementById(page.id + "lineBlock");
+		var header = document.getElementById(page.id + "header");
+		var footer = document.getElementById(page.id + "footer");
+		header.style.lineHeight = getFontSize(header) + "px";
+		footer.style.lineHeight = getFontSize(footer) + "px";
+		var lines = page.getElementsByClassName("line");
+		var lineWidth = setLineFontSize(lines, offsetWidth, offsetWidth);
+
+		var maxHeight = page.offsetHeight - header.offsetHeight - footer.offsetHeight;
+		if(lineWidth > offsetWidth){
+			lineWidth = setLineFontSize(lines, offsetWidth, offsetWidth * (offsetWidth / lineWidth));
+		}
+		if(lineBlock.offsetHeight > maxHeight){
+			lineWidth = setLineFontSize(lines, offsetWidth, offsetWidth * (maxHeight / lineBlock.offsetHeight));
+		}
+
+		var addHeight = (maxHeight - lineBlock.offsetHeight) / 2;
+		var addWidth  = (offsetWidth - lineWidth) / 2;
+		var headerSpacer = document.getElementById(page.id + "headerSpacer");
+		var footerSpacer = document.getElementById(page.id + "footerSpacer");
+		headerSpacer.style.height = addHeight + "px";
+		footerSpacer.style.height = addHeight + "px";
+	}
+}
+function setLineFontSize(lines, offsetWidth, basesize){
+	var sizeTotal = 0;
+	for(var j = 0; j < lines.length; j++){
+		var line = lines[j];
+		var width = line.offsetWidth;
+		var height = line.offsetHeight;
+		sizeTotal += (basesize * 15 / 16) / (width / getFontSize(line));
+	}
+	var lineWidth = 0;
+	for(var j = 0; j < lines.length; j++){
+		var line = lines[j];
+		line.style.fontSize = line.style.lineHeight = (sizeTotal / lines.length) + "px";
+		lineWidth = Math.max(lines[j].offsetWidth, lineWidth);
+	}
+	for(var j = 0; j < lines.length; j++){
+		var line = lines[j];
+		line.style.marginLeft = ((offsetWidth - lineWidth) / 2) + "px";
+	}
+	return lineWidth;
+}
+function getFontSize(line){
+	if(line.style.fontSize){
+		return parseFloat(line.style.fontSize.replace("\D$", ""));
+	}
+	else{
+		return 16;
+	}
+}
+function keyBackForward(event){
+	if(event.keyCode == 13){
+		if(curpage != maxpage){
+			curpage++;
+			document.location = document.location.protocol + document.location.pathname + "#" + curpage;
+		}
+	}
+	if(event.keyCode == 8){
+		if(curpage != 1){
+			curpage--;
+		}
+	}
+}
+</script>
+</head>
+<body id="body" onload="createPages();" onkeypress="keyBackForward(event);">
+
+<!-- ユーザ設定値 -->
+<textarea id="content" style="visibility: collapse; height: 0px; width: 0px;">
+高橋rf.html
+ + printplus
+---
+自己紹介
+・名前：アベヒロキ (<a target="_blank" href="http://twitter.com/hATrayflood">@hATrayflood</a>)
+・職業：自宅サーバ管理者
+・URL：<a target="_blank" href="http://rayflood.org/diary/">http://rayflood.org/diary/</a>
+・住所：長野市 地元：東部町
+---
+いいかげん
+ウザイ？
+---
+今回は
+---
+プレゼンツール
+作りますた
+---
+動機
+---
+今までは
+<a target="_blank" href="http://piro.sakura.ne.jp/xul/applications/takahashi-r/">高橋メソッド in XUL</a>
+を使ってた
+---
+最近不便
+を感じる
+---
+理由
+その1
+---
+Firefox 4で
+<strong>使えなくなる</strong>
+---
+Firefox 4は
+リモートxulが
+サポート外
+---
+理由
+その2
+---
+PDF出力が
+<strong>できない</strong>
+---
+<a target="_blank" href="http://www.slideshare.net/">slideshare</a>に
+うｐできない
+---
+ほかの
+手段
+---
+OOo
+---
+OpenOffice.org
+---
+イマイチ
+オートシェイプが
+気に入らない
+---
+いや、簡単に
+高橋化できな
+かっただけ
+---
+Google ドキュメント
+プレゼンテーション
+---
+イマイチ
+ヘッダ・フッタ
+がない。面倒
+---
+結局作った
+( ﾟдﾟ)ｳﾎﾞｧ…
+---
+コンポートネント1
+高橋rf.html
+---
+基本的には
+ベタHTML
+---
+ページ区切りは
+"<strong>---</strong>" <strong>-(マイナス)</strong>
+が3つ以上
+---
+行区切りは自動
+データの改行が
+そのまま<strong>&amp;lt;br&amp;gt;</strong>
+---
+操作は
+Enterで進む
+BSで戻る
+---
+データ
+具体的には
+こんな感じ
+---
+多分まだ
+<strong>バグ</strong>っぽい
+---
+未テスト
+・レイアウト調整
+・画像とテーブル
+・他ブラウザ
+---
+過去のプレゼン
+資料でテストする
+つもり
+---
+コンポートネント2
+printplus
+---
+もともとPDF変換の
+アドオンがあった
+---
+<a target="_blank" href="https://addons.mozilla.org/ja/firefox/addon/5971/">PrintPDF</a>
+---
+ただし、コレ
+<strong>横にできない</strong>
+---
+プレゼン資料は
+横長なので
+ちょっとアレ
+---
+結局作った
+( ﾟдﾟ)ｳﾎﾞｧ！
+---
+printplus
+---
+選択してる
+プリンタの
+設定でPDF化
+---
+<strong>縦横</strong>も<strong>拡大縮小</strong>も
+<strong>ヘッダ</strong>・<strong>フッタ</strong>も
+設定可能
+---
+こっちは少しだけ
+デバッグが必要…
+---
+実物
+---
+このプレゼンを
+PDF化 & 
+<a target="_blank" href="http://www.slideshare.net/hATrayflood">slideshare</a>にうｐ
+---
+公開はもう
+ちょっと待って…
+---
+<a target="_blank" href="https://dev.mozilla.jp/events/workshop07/">modest</a>なり
+<a target="_blank" href="http://twitter.com/hATrayflood">twitter</a>なりで
+情報出します
+---
+・リンク集
+twitter @hATrayflood
+<a target="_blank" href="http://twitter.com/hATrayflood">http://twitter.com/hATrayflood</a>
+高橋メソッド in XUL
+<a target="_blank" href="http://piro.sakura.ne.jp/xul/applications/takahashi-r/">http://piro.sakura.ne.jp/xul/applications/takahashi-r/</a>
+PrintPDF
+<a target="_blank" href="https://addons.mozilla.org/ja/firefox/addon/5971/">https://addons.mozilla.org/ja/firefox/addon/5971/</a>
+slideshare hATrayflood
+<a target="_blank" href="http://www.slideshare.net/hATrayflood">http://www.slideshare.net/hATrayflood</a>
+Mozilla 勉強会@名古屋
+<a target="_blank" href="https://dev.mozilla.jp/events/workshop07/">https://dev.mozilla.jp/events/workshop07/</a>
+</textarea>
+<!-- ユーザ設定値 -->
+
+</body>
+</html>

@@ -1,15 +1,37 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html id="html">
+<html id="html" lang="ja">
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
 
 <!-- ユーザ設定値 -->
-<title>高橋rf.html + printplus</title>
+<title>高橋rf.html + printplusリリース</title>
 <script type="text/javascript">
-var headerText = "2010/10/16 Mozilla 勉強会@名古屋";
+var headerText = "2010/10/27 NSEG長野開発オフ Vol.6";
 var footerText = "by ABE Hiroki aka hATrayflood";
 </script>
 <style type="text/css">
+#page1lineBlock {
+	text-align: center;
+}
+#page1lineBlock > span.line {
+	margin-left: 0px !important;
+}
+#page36line2, #page36line3 {
+	color: yellow;
+	background-color: green;
+}
+#page38 {
+	color: white;
+	background-color: black;
+	font-family: serif;
+}
+#page38lineBlock {
+	text-align: center;
+}
+#page38lineBlock > span.line {
+	margin-left: 0px !important;
+}
+
 strong {
 	color: red;
 	font-weight: bold;
@@ -23,12 +45,16 @@ table, table * {
 	empty-cells: show;
 	white-space: nowrap;
 }
+/* EVAモード */
 /*
 body {
 	color: white;
 	background-color: black;
 	font-family: serif;
 }
+*/
+/* センタリング */
+/*
 div.lineBlock {
 	text-align: center;
 }
@@ -41,7 +67,7 @@ div.lineBlock > span.line {
 
 <style type="text/css">
 body {
-	margin-top   : 0px;
+	margin-top : 0px;
 }
 div.page {
 	page-break-after: always;
@@ -70,7 +96,7 @@ function createPages(){
 		body.removeChild(body.firstChild);
 	}
 
-	var pages = content.split(/\n---*/);
+	var pages = content.split(/\n---+/);
 	maxpage = pages.length;
 	for(var i = 0; i < pages.length; i++){
 		var br = document.createElement("br")
@@ -103,6 +129,19 @@ function createPages(){
 		page.appendChild(footer);
 	}
 
+	var ahref = document.getElementsByTagName("a");
+	for(var i = 0; i < ahref.length; i++){
+		if(!ahref[i].onclick){
+			ahref[i].onclick = function(event){event.target.blur()};
+		}
+		if(!ahref[i].target){
+			ahref[i].target = "_blank";
+		}
+		if(!ahref[i].innerHTML){
+			ahref[i].innerHTML = ahref[i].href;
+		}
+	}
+
 	adjustPages();
 }
 function createDiv(i, name){
@@ -118,6 +157,13 @@ function adjustPages(){
 	body.style.width = (html.clientHeight * 1.28125) + "px";
 	var offsetWidth = body.offsetWidth;
 
+	var images = document.getElementsByTagName("img");
+	for(var i = 0; i < images.length; i++){
+		if(!images[i].hasAttribute("width") && images[i].offsetWidth > offsetWidth){
+			images[i].setAttribute("width", "100%");
+		}
+	}
+
 	var pages = document.getElementsByClassName("page");
 	for(var i = 0; i < pages.length; i++){
 		var page = pages[i];
@@ -128,16 +174,9 @@ function adjustPages(){
 		var footer = document.getElementById(page.id + "footer");
 		header.style.lineHeight = getFontSize(header) + "px";
 		footer.style.lineHeight = getFontSize(footer) + "px";
-		var lines = page.getElementsByClassName("line");
-		var lineWidth = setLineFontSize(lines, offsetWidth, offsetWidth);
-
 		var maxHeight = page.offsetHeight - header.offsetHeight - footer.offsetHeight;
-		if(lineWidth > offsetWidth){
-			lineWidth = setLineFontSize(lines, offsetWidth, offsetWidth * (offsetWidth / lineWidth));
-		}
-		if(lineBlock.offsetHeight > maxHeight){
-			lineWidth = setLineFontSize(lines, offsetWidth, offsetWidth * (maxHeight / lineBlock.offsetHeight));
-		}
+		var lines = page.getElementsByClassName("line");
+		var lineWidth = setLineFontSize(lines, offsetWidth, maxHeight);
 
 		var addHeight = (maxHeight - lineBlock.offsetHeight) / 2;
 		var addWidth  = (offsetWidth - lineWidth) / 2;
@@ -147,25 +186,44 @@ function adjustPages(){
 		footerSpacer.style.height = addHeight + "px";
 	}
 }
-function setLineFontSize(lines, offsetWidth, basesize){
-	var sizeTotal = 0;
+function setLineFontSize(lines, limitWidth, limitHeight){
+	var maxWidth = 0;
+	var maxHeight = 0;
 	for(var j = 0; j < lines.length; j++){
 		var line = lines[j];
-		var width = line.offsetWidth;
-		var height = line.offsetHeight;
-		sizeTotal += (basesize * 15 / 16) / (width / getFontSize(line));
+		var lineHeight = setLineHeight(line);
+		if(lineHeight <= line.offsetHeight){
+			maxHeight += line.offsetHeight;
+			maxWidth = Math.max(line.offsetWidth, maxWidth);
+		}
 	}
-	var lineWidth = 0;
+	var rateWidth  = limitWidth  / maxWidth;
+	var rateHeight = limitHeight / maxHeight;
+	var rate = rateWidth < rateHeight ? rateWidth : rateHeight;
+	var afterWidth = 0;
 	for(var j = 0; j < lines.length; j++){
 		var line = lines[j];
-		line.style.fontSize = line.style.lineHeight = (sizeTotal / lines.length) + "px";
-		lineWidth = Math.max(lines[j].offsetWidth, lineWidth);
+		line.style.fontSize = line.style.lineHeight = (getFontSize(line) * rate) + "px";
+		afterWidth = Math.max(line.offsetWidth, afterWidth);
 	}
 	for(var j = 0; j < lines.length; j++){
 		var line = lines[j];
-		line.style.marginLeft = ((offsetWidth - lineWidth) / 2) + "px";
+		line.style.marginLeft = ((limitWidth - afterWidth) / 2) + "px";
 	}
-	return lineWidth;
+	return maxWidth;
+}
+function setLineHeight(line){
+	var height = line.offsetHeight;
+	var children = line.childNodes;
+	for(var k = 0; k < children.length; k++){
+		if(children[k].offsetHeight){
+			height = Math.max(children[k].offsetHeight, height);
+		}
+	}
+	if(height > line.offsetHeight){
+		line.style.height = height + "px";
+	}
+	return height;
 }
 function getFontSize(line){
 	if(line.style.fontSize){
@@ -179,12 +237,13 @@ function keyBackForward(event){
 	if(event.keyCode == 13){
 		if(curpage != maxpage){
 			curpage++;
-			document.location = document.location.protocol + document.location.pathname + "#" + curpage;
+			document.location.replace(document.location.protocol + document.location.pathname + "#" + curpage);
 		}
 	}
 	if(event.keyCode == 8){
 		if(curpage != 1){
 			curpage--;
+			document.location.replace(document.location.protocol + document.location.pathname + "#" + curpage);
 		}
 	}
 }
@@ -194,165 +253,255 @@ function keyBackForward(event){
 
 <!-- ユーザ設定値 -->
 <textarea id="content" style="visibility: collapse; height: 0px; width: 0px;">
-高橋rf.html
- + printplus
+プレゼンツール
+高橋rf.html + printplus
+<strong>リリース</strong>のお知らせ
 ---
 自己紹介
-・名前：アベヒロキ (<a target="_blank" href="http://twitter.com/hATrayflood">@hATrayflood</a>)
+・名前：アベヒロキ (<a href="http://twitter.com/hATrayflood">@hATrayflood</a>)
 ・職業：自宅サーバ管理者
-・URL：<a target="_blank" href="http://rayflood.org/diary/">http://rayflood.org/diary/</a>
+・URL：<a href="http://rayflood.org/diary/">http://rayflood.org/diary/</a>
 ・住所：長野市 地元：東部町
 ---
-いいかげん
-ウザイ？
+<a href="https://dev.mozilla.jp/events/workshop07/">Mozilla 勉強会@名古屋</a>でLTした
+<a href="http://www.slideshare.net/hATrayflood/rfhtml-printplus-5459082">高橋rf.html + printplus</a>ですが
 ---
-今回は
+一応、まともに
+動くようになったので
 ---
-プレゼンツール
-作りますた
+ver0.1として<strong>リリース</strong>します
+<a href="http://rayflood.org/mozilla/#tkhs"></a>
 ---
-動機
+動作
+環境
 ---
-今までは
-<a target="_blank" href="http://piro.sakura.ne.jp/xul/applications/takahashi-r/">高橋メソッド in XUL</a>
-を使ってた
----
-最近不便
-を感じる
----
-理由
-その1
----
-Firefox 4で
-<strong>使えなくなる</strong>
----
-Firefox 4は
-リモートxulが
-サポート外
----
-理由
-その2
----
-PDF出力が
-<strong>できない</strong>
----
-<a target="_blank" href="http://www.slideshare.net/">slideshare</a>に
-うｐできない
----
-ほかの
-手段
----
-OOo
----
-OpenOffice.org
----
-イマイチ
-オートシェイプが
-気に入らない
----
-いや、簡単に
-高橋化できな
-かっただけ
----
-Google ドキュメント
-プレゼンテーション
----
-イマイチ
-ヘッダ・フッタ
-がない。面倒
----
-結局作った
-( ﾟдﾟ)ｳﾎﾞｧ…
----
-コンポートネント1
 高橋rf.html
+・Firefox
+・Seamonkey
+　他ブラウザは
+　<strong>未対応</strong>
+---
+printplus
+・Firefox
+・Thunderbird
+・Seamonkey
+　<strong>Windows版のみ</strong>
+---
+使い方
+---
+まずローカルに
+ダウンロード
+---
+エディタで
+編集します
 ---
 基本的には
-ベタHTML
+HTMLをベタで
+書く感じ
+---
+タイトル
+---
+titleタグを直接編集
+　
+&amp;lt;title&amp;gt;高橋rf.html + printplusリリース&amp;lt;/title&amp;gt;
+---
+ヘッダ
+フッタ
+---
+titleタグのすぐ下のscript内の変数を直接編集
+　
+&amp;lt;title&amp;gt;高橋rf.html + printplusリリース&amp;lt;/title&amp;gt;
+&amp;lt;script type="text/javascript"&amp;gt;
+var headerText = "2010/10/27 NSEG長野開発オフ Vol.6";
+var footerText = "by ABE Hiroki aka hATrayflood";
+---
+本文
+---
+bodyタグ内のtextareaの値を直接編集
+　
+&amp;lt;textarea id="content"&amp;gt;
+プレゼンツール
+高橋rf.html + printplus
+&amp;lt;strong&amp;gt;リリース&amp;lt;/strong&amp;gt;のお知らせ
+ ---
+自己紹介
+　…
+&amp;lt;/textarea&amp;gt;
+---
+本文の
+書き方
+---
+1ページの内容に応じて
+文字サイズを<strong>自動で調整</strong>
+画面に収まる<strong>最大サイズ</strong>
 ---
 ページ区切りは
-"<strong>---</strong>" <strong>-(マイナス)</strong>
-が3つ以上
+行頭で「<strong>---</strong>」
+「<strong>-</strong>」が3つ以上
 ---
-行区切りは自動
-データの改行が
-そのまま<strong>&amp;lt;br&amp;gt;</strong>
+行区切りは<strong>自動</strong>
+textareaの値の
+改行がそのまま
 ---
-操作は
+その他は
+すべてHTMLを
+そのまま書く
+---
+ただし、HTMLタグは
+始めと終わりが
+行を<strong>またがない</strong>ように
+---
+自動処理
+HTML要素
+---
+aタグ
+・ラベルがない場合はURLを表示
+・target指定がない場合は自動で「_blank」
+・クリック時に自動でフォーカスを外す
+---
+例：
+&amp;lt;a href="http://rayflood.org/mozilla/#tkhs"&amp;gt;&amp;lt;/a&amp;gt;
+　↓
+<a href="http://rayflood.org/mozilla/#tkhs"></a>
+---
+画像
+・現在の表示幅で収まらない場合は
+　width="100%"を設定し、自動で幅調整
+・正しく表示するには<strong>要リロード！</strong>
+---
+例：
+2500px x 200px
+&amp;lt;img src="LeavesHeader2.png"&amp;gt;
+　↓
+2500px x 200px
+<img src="LeavesHeader2.png">
+---
+strongタグ
+・赤字で表示
+・これはCSSで実装。19行目を参照。
+---
+例：
+&amp;lt;strong&amp;gt;strongタグ&amp;lt;/strong&amp;gt;
+　↓
+<strong>strongタグ</strong>
+---
+テーブル
+・枠線すっきり
+・自動折り返し禁止
+・空セルも表示
+・これもCSSで実装。26行目を参照。
+・ただし、<strong>1行で</strong>書け！！
+---
+例：
+&amp;lt;table&amp;gt;&amp;lt;tr&amp;gt;&amp;lt;th&amp;gt;ヘッダ1&amp;lt;/th&amp;gt;&amp;lt;th&amp;gt;ヘッダ2&amp;lt;/th&amp;gt;&amp;lt;/tr&amp;gt;&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;データ1&amp;lt;/td&amp;gt;&amp;lt;td&amp;gt;データ2&amp;lt;/td&amp;gt;&amp;lt;/tr&amp;gt;&amp;lt;/table&amp;gt;
+　↓
+<table><tr><th>ヘッダ1</th><th>ヘッダ2</th></tr><tr><td>データ1</td><td>データ2</td></tr></table>
+　
+※1行で書く必要があります。
+---
+Tips
+---
+・空行は全角空白がお勧め
+・インデントは&amp;amp;nbsp;
+・「&amp;lt;」「&amp;gt;」を出すには一工夫
+---
+例：
+　
+&nbsp;&nbsp;→&amp;amp;nbsp;&amp;amp;nbsp;
+「&amp;lt;」「&amp;gt;」→「&amp;amp;amp;lt;」「&amp;amp;amp;gt;」
+　
+※空行とインデントは着色しています
+---
+・ページごとにidが振ってあります
+・ページ全体が #page1
+・ヘッダ、フッタが #page1header, #page1footer
+・ページの本文が #page1lineBlock
+・本文の行ごとに #page1line1, #page1line2, …
+　
+つまり、CSSでのスタイル指定が可能
+---
+例：
+ユーザスタイルを適用すると
+センタリングや
+エヴァモードも使えるよ！
+　
+※エヴァは<strong>body</strong>での指定を推奨…
+---
+プレゼン
+---
+Firefoxで開いて
+プロジェクタに
+映してください
+---
+ページ移動は
 Enterで進む
-BSで戻る
+BackSpaceで戻る
+それだけ
 ---
-データ
-具体的には
-こんな感じ
+PDF
 ---
-多分まだ
-<strong>バグ</strong>っぽい
+まずは印刷プレビューで
+全体の大きさと四方の余白
+空白ページの有無を確認
+用紙方向を<strong>横向き</strong>に変更
 ---
-未テスト
-・レイアウト調整
-・画像とテーブル
-・他ブラウザ
+よさそうなら
+「ファイル」→
+「printplus PDF」
 ---
-過去のプレゼン
-資料でテストする
-つもり
+ファイル選択が
+出るので適当な
+名前で保存
 ---
-コンポートネント2
-printplus
+<a href="http://www.slideshare.net/">slideshare</a>
+にうｐ
 ---
-もともとPDF変換の
-アドオンがあった
+補足
 ---
-<a target="_blank" href="https://addons.mozilla.org/ja/firefox/addon/5971/">PrintPDF</a>
+高橋rf.htmlの
+他ブラウザ対応は
+優先度<strong>低</strong>です
 ---
-ただし、コレ
-<strong>横にできない</strong>
+PDF出力も他の
+環境への対応は
+優先度<strong>低</strong>です
 ---
-プレゼン資料は
-横長なので
-ちょっとアレ
+Win版Firefoxのみでの
+状況でもhATrayfloodが
+<strong>満足</strong>なたため
 ---
-結局作った
-( ﾟдﾟ)ｳﾎﾞｧ！
+パッチは<strong>大歓迎！</strong>
+どこかにうｐして
+@投げてください
 ---
-printplus
+外部リソースから
+プレゼン表示は
+<strong>対応しない</strong>つもり
 ---
-選択してる
-プリンタの
-設定でPDF化
+セキュリティ上
+<strong>やばい</strong>ケースが
+想定されるため
 ---
-<strong>縦横</strong>も<strong>拡大縮小</strong>も
-<strong>ヘッダ</strong>・<strong>フッタ</strong>も
-設定可能
----
-こっちは少しだけ
-デバッグが必要…
----
-実物
----
-このプレゼンを
-PDF化 & 
-<a target="_blank" href="http://www.slideshare.net/hATrayflood">slideshare</a>にうｐ
----
-公開はもう
-ちょっと待って…
----
-<a target="_blank" href="https://dev.mozilla.jp/events/workshop07/">modest</a>なり
-<a target="_blank" href="http://twitter.com/hATrayflood">twitter</a>なりで
-情報出します
+ライセンスは
+<a href="http://www.mozilla.org/MPL/MPL-1.1.html">MPL 1.1</a>でどぞ
 ---
 ・リンク集
 twitter @hATrayflood
-<a target="_blank" href="http://twitter.com/hATrayflood">http://twitter.com/hATrayflood</a>
-高橋メソッド in XUL
-<a target="_blank" href="http://piro.sakura.ne.jp/xul/applications/takahashi-r/">http://piro.sakura.ne.jp/xul/applications/takahashi-r/</a>
-PrintPDF
-<a target="_blank" href="https://addons.mozilla.org/ja/firefox/addon/5971/">https://addons.mozilla.org/ja/firefox/addon/5971/</a>
-slideshare hATrayflood
-<a target="_blank" href="http://www.slideshare.net/hATrayflood">http://www.slideshare.net/hATrayflood</a>
+<a href="http://twitter.com/hATrayflood"></a>
+mozilla rayflood独自ビルド 高橋rf.html + printplus
+<a href="http://rayflood.org/mozilla/#tkhs"></a>
 Mozilla 勉強会@名古屋
-<a target="_blank" href="https://dev.mozilla.jp/events/workshop07/">https://dev.mozilla.jp/events/workshop07/</a>
+<a href="https://dev.mozilla.jp/events/workshop07/"></a>
+Mozilla 勉強会@名古屋でのスライド
+<a href="http://www.slideshare.net/hATrayflood/rfhtml-printplus-5459082"></a>
+SlideShare
+<a href="http://www.slideshare.net/"></a>
+高橋メソッドなプレゼンツール in XUL リターンズ
+<a href="http://piro.sakura.ne.jp/xul/applications/takahashi-r/"></a>
+Add-ons for Firefox PrintPDF
+<a href="https://addons.mozilla.org/ja/firefox/addon/5971/"></a>
+Mozilla Public License Version 1.1
+<a href="http://www.mozilla.org/MPL/MPL-1.1.html"></a>
 </textarea>
 <!-- ユーザ設定値 -->
 

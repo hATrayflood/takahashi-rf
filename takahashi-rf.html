@@ -276,24 +276,28 @@ function keyBackForward(event){
 	if(!event){
 		return false;
 	}
-	if(event.preventDefault){
-		event.preventDefault();
-	}
-	else{
-		event.returnValue = false;
-	}
 
 	if(event.keyCode == 13){
+		preventEvent(event);
 		if(curpage != maxpage){
 			curpage++;
 			document.location.replace(document.location.protocol + document.location.pathname + "#" + curpage);
 		}
 	}
 	if(event.keyCode == 8 || event.keyCode == 46){
+		preventEvent(event);
 		if(curpage != 1){
 			curpage--;
 			document.location.replace(document.location.protocol + document.location.pathname + "#" + curpage);
 		}
+	}
+}
+function preventEvent(event){
+	if(event.preventDefault){
+		event.preventDefault();
+	}
+	else{
+		event.returnValue = false;
 	}
 }
 //]]>

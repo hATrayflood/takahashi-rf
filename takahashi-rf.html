@@ -16,7 +16,7 @@ var footerText = "by ABE Hiroki aka hATrayflood";
 #page1lineBlock > span.line {
 	margin-left: 0px !important;
 }
-#page41line2, #page41line3 {
+#page41line2, #page41line3, #page41line4 {
 	color: yellow;
 	background-color: green;
 }
@@ -137,7 +137,13 @@ function createPages(){
 			var line = document.createElement("span");
 			line.id = "page" + (i + 1) + "line" + (j + 1);
 			line.className = "line";
-			line.innerHTML = lines[j];
+			line.innerHTML = lines[j].replace(/^$/, " ").replace(/^\s+/g, function(match){
+				var s = "";
+				for(var i = 0; i < match.length; i++){
+					s += match[i] == "\t" ? "&nbsp;&nbsp;&nbsp;&nbsp;" : "&nbsp;";
+				}
+				return s;
+			});
 			lineBlock.appendChild(line);
 			lineBlock.appendChild(document.createElement("br"));
 		}
@@ -328,7 +334,7 @@ ver0.1として<strong>リリース</strong>した
 <strong>0.3としてうｐ</strong>
 ---
 ※0.2は
-　<em>紛失</em>しました
+ <em>紛失</em>しました
 ---
 動作
 環境
@@ -346,7 +352,7 @@ ver0.1として<strong>リリース</strong>した
 <strong>クロスブラウザ</strong>化
 ---
 ※いずれもWindows版で
-　動作を確認
+ 動作を確認
 ---
 使い方
 ---
@@ -363,14 +369,14 @@ HTMLをベタで
 タイトル
 ---
 titleタグを直接編集
-　
+
 &amp;lt;title&amp;gt;高橋rf.html 0.3&amp;lt;/title&amp;gt;
 ---
 ヘッダ
 フッタ
 ---
 titleタグのすぐ下のscript内の変数を直接編集
-　
+
 &amp;lt;title&amp;gt;高橋rf.html 0.3&amp;lt;/title&amp;gt;
 &amp;lt;script type="text/javascript"&amp;gt;
 var headerText = "2012/1/3 rayflood.org/mozilla/";
@@ -379,14 +385,14 @@ var footerText = "by ABE Hiroki aka hATrayflood";
 本文
 ---
 bodyタグ内のtextareaの値を直接編集
-　
+
 &amp;lt;textarea id="content"&amp;gt;
 プレゼンツール
 高橋rf.html &amp;lt;strong&amp;gt;0.3&amp;lt;strong&amp;gt;
 アップデート
  ---
 自己紹介
-　…
+ …
 &amp;lt;/textarea&amp;gt;
 ---
 本文の
@@ -422,18 +428,18 @@ aタグ
 ---
 例：
 &amp;lt;a href="http://rayflood.org/mozilla/#tkhs"&amp;gt;&amp;lt;/a&amp;gt;
-　↓
+ ↓
 <a href="http://rayflood.org/mozilla/#tkhs"></a>
 ---
 画像
 ・現在の表示幅で収まらない場合は
-　width="100%"を設定し、自動で幅調整
+  width="100%"を設定し、自動で幅調整
 ・正しく表示するには<strong>要リロード！</strong>
 ---
 例：
 2500px x 200px
 &amp;lt;img src="LeavesHeader2.png"&amp;gt;
-　↓
+ ↓
 2500px x 200px
 <img src="LeavesHeader2.png">
 ---
@@ -443,7 +449,7 @@ strongタグ
 ---
 例：
 &amp;lt;strong&amp;gt;strongタグ&amp;lt;/strong&amp;gt;
-　↓
+ ↓
 <strong>strongタグ</strong>
 ---
 emタグ
@@ -452,7 +458,7 @@ emタグ
 ---
 例：
 &amp;lt;em&amp;gt;emタグ&amp;lt;/em&amp;gt;
-　↓
+ ↓
 <em>emタグ</em>
 ---
 テーブル
@@ -464,22 +470,26 @@ emタグ
 ---
 例：
 &amp;lt;table&amp;gt;&amp;lt;tr&amp;gt;&amp;lt;th&amp;gt;ヘッダ1&amp;lt;/th&amp;gt;&amp;lt;th&amp;gt;ヘッダ2&amp;lt;/th&amp;gt;&amp;lt;/tr&amp;gt;&amp;lt;tr&amp;gt;&amp;lt;td&amp;gt;データ1&amp;lt;/td&amp;gt;&amp;lt;td&amp;gt;データ2&amp;lt;/td&amp;gt;&amp;lt;/tr&amp;gt;&amp;lt;/table&amp;gt;
-　↓
+ ↓
 <table><tr><th>ヘッダ1</th><th>ヘッダ2</th></tr><tr><td>データ1</td><td>データ2</td></tr></table>
-　
+
 ※1行で書く必要があります。
 ---
 Tips
 ---
-・空行は全角空白がお勧め
-・インデントは&amp;amp;nbsp;
+・<del>空行は全角空白がお勧め</del>
+・<del>インデントは&amp;amp;nbsp;</del>
+・スペースのインデントはそのまま表示
+・タブのインデントはスペース4文字に変換
+・空行はスペース1文字に変換
 ・「&amp;lt;」「&amp;gt;」を出すには一工夫
 ---
 例：
-　
-&nbsp;&nbsp;→&amp;amp;nbsp;&amp;amp;nbsp;
+ 	
+
+  →&amp;amp;nbsp;&amp;amp;nbsp;
 「&amp;lt;」「&amp;gt;」→「&amp;amp;amp;lt;」「&amp;amp;amp;gt;」
-　
+
 ※空行とインデントは着色しています
 ---
 ・ページごとにidが振ってあります
@@ -487,14 +497,14 @@ Tips
 ・ヘッダ、フッタが #page1header, #page1footer
 ・ページの本文が #page1lineBlock
 ・本文の行ごとに #page1line1, #page1line2, …
-　
+
 つまり、CSSでのスタイル指定が可能
 ---
 例：
 ユーザスタイルを適用すると
 <em>センタリング</em>や
 <em>エヴァモード</em>も使えるよ！
-　
+
 ※エヴァは<strong>body</strong>での指定を推奨…
 ---
 フォント

@@ -101,12 +101,13 @@ div.footer {
 //<![CDATA[
 var curpage = 1;
 var maxpage = 1;
+window.onload = createPages;
 function createPages(){
 	if(document.location.hash){
 		curpage = parseInt(document.location.hash.substr(1));
 	}
 
-	var body = document.getElementById("body");
+	var body = document.body;
 	var content = document.getElementById("content").textContent;
 	if(!content){
 		var content = document.getElementById("content").innerText;
@@ -183,15 +184,25 @@ function createDiv(i, name){
 }
 function adjustPages(){
 	var html = document.getElementById("html");
-	var body = document.getElementById("body");
+	var body = document.body;
 	var clientHeight = html.clientHeight;
 	body.style.width = (html.clientHeight * 1.28125) + "px";
 	var offsetWidth = body.offsetWidth;
 
 	var images = document.getElementsByTagName("img");
 	for(var i = 0; i < images.length; i++){
-		if(!images[i].hasAttribute("width") && images[i].offsetWidth > offsetWidth){
-			images[i].setAttribute("width", "100%");
+		if(images[i].offsetWidth){
+			if(!images[i].hasAttribute("width") && images[i].offsetWidth > offsetWidth){
+				images[i].setAttribute("width", "100%");
+			}
+		}
+		else{
+			// chrome
+			images[i].onload = function(event){
+				if(!event.target.hasAttribute("width") && event.target.offsetWidth > offsetWidth){
+					event.target.setAttribute("width", "100%");
+				}
+			}
 		}
 	}
 
@@ -309,7 +320,7 @@ function preventEvent(event){
 //]]>
 </script>
 </head>
-<body id="body" onload="createPages();">
+<body>
 
 <!-- ユーザ設定値 -->
 <textarea id="content" style="visibility: collapse; height: 0px; width: 0px;">
@@ -441,7 +452,7 @@ aタグ
 &amp;lt;img src="LeavesHeader2.png"&amp;gt;
  ↓
 2500px x 200px
-<img src="LeavesHeader2.png">
+<img src="http://rayflood.org/diary-temp/LeavesHeader2.png">
 ---
 strongタグ
 ・赤字で表示

@@ -168,7 +168,7 @@ function createPages(){
 		}
 	}
 
-	adjustPages();
+	adjustImages();
 	if(document.addEventListener){
 		document.addEventListener("keydown", keyBackForward, false);
 	}
@@ -182,29 +182,27 @@ function createDiv(i, name){
 	div.className = name;
 	return div;
 }
+function adjustImages(){
+	var offsetWidth = document.body.offsetWidth;
+	var images = document.getElementsByTagName("img");
+	for(var i = 0; i < images.length; i++){
+		images[i].onload = function(event){
+			if(!event.target.hasAttribute("width") && event.target.offsetWidth > offsetWidth){
+				event.target.setAttribute("width", "100%");
+			}
+			adjustPages();
+		}
+	}
+	if(images.length == 0){
+		adjustPages();
+	}
+}
 function adjustPages(){
 	var html = document.getElementById("html");
 	var body = document.body;
 	var clientHeight = html.clientHeight;
-	body.style.width = (html.clientHeight * 1.28125) + "px";
+	var limitWidth  = (html.clientHeight * 1.6);
 	var offsetWidth = body.offsetWidth;
-
-	var images = document.getElementsByTagName("img");
-	for(var i = 0; i < images.length; i++){
-		if(images[i].offsetWidth){
-			if(!images[i].hasAttribute("width") && images[i].offsetWidth > offsetWidth){
-				images[i].setAttribute("width", "100%");
-			}
-		}
-		else{
-			// chrome
-			images[i].onload = function(event){
-				if(!event.target.hasAttribute("width") && event.target.offsetWidth > offsetWidth){
-					event.target.setAttribute("width", "100%");
-				}
-			}
-		}
-	}
 
 	var pages = body.getElementsByTagName("div");
 	for(var i = 0; i < pages.length; i++){
@@ -221,7 +219,7 @@ function adjustPages(){
 		header.style.lineHeight = getFontSize(header) + "px";
 		footer.style.lineHeight = getFontSize(footer) + "px";
 		var maxHeight = page.offsetHeight - header.offsetHeight - footer.offsetHeight;
-		var lineWidth = setLineFontSize(page, offsetWidth, maxHeight);
+		var lineWidth = setLineFontSize(page, offsetWidth, limitWidth, maxHeight);
 
 		var addHeight = (maxHeight - lineBlock.offsetHeight) / 2;
 		var addWidth  = (offsetWidth - lineWidth) / 2;
@@ -233,7 +231,7 @@ function adjustPages(){
 		}
 	}
 }
-function setLineFontSize(page, limitWidth, limitHeight){
+function setLineFontSize(page, offsetWidth, limitWidth, limitHeight){
 	var maxWidth = 0;
 	var maxHeight = 0;
 	var lines = page.getElementsByTagName("span");
@@ -259,12 +257,13 @@ function setLineFontSize(page, limitWidth, limitHeight){
 	var afterWidth = 0;
 	for(var j = 0; j < lines.length; j++){
 		var line = lines[j];
-		line.style.fontSize = line.style.lineHeight = (getFontSize(line) * rate) + "px";
+		line.style.fontSize = line.style.lineHeight = Math.min(450.0, (getFontSize(line) * rate)) + "px";
 		afterWidth = Math.max(line.offsetWidth, afterWidth);
 	}
+	var marginLeft = Math.max(((offsetWidth - afterWidth) / 2), 0) + "px";
 	for(var j = 0; j < lines.length; j++){
 		var line = lines[j];
-		line.style.marginLeft = ((limitWidth - afterWidth) / 2) + "px";
+		line.style.marginLeft = marginLeft;
 	}
 	return maxWidth;
 }
